@@ -57,17 +57,19 @@ function Deck(){
     }
   };
   this.shuffleDeck = function(){
-    this.cards.forEach(function(card){
-      // generate random index of array to swap with
-      var randIndex = Math.floor(Math.rand() * 52);
-      // create a placeholder to store value of current index card
-      var placeholderCard = card.clone();
-      // set the values of the current index to those of the random index card
-      card.setValues(cards[randIndex].val , cards[randIndex].suit);
-      // set the values of the random index card to the temp stored values
-      cards[randIndex].setValues(placeholderCard.val , placeholderCard.suit);
-    };)
-  }
+    this.cards.forEach(
+      function(card){
+        // generate random index of array to swap with
+        var randIndex = Math.floor(Math.rand() * 52);
+        // create a placeholder to store value of current index card
+        var placeholderCard = card.clone();
+        // set the values of the current index to those of the random index card
+        card.setValues(this.cards[randIndex].val , this.cards[randIndex].suit);
+        // set the values of the random index card to the temp stored values
+        this.cards[randIndex].setValues(placeholderCard.val , placeholderCard.suit);
+      }
+    );
+  };
 }
 
 var deck = new Deck();
