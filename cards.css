@@ -1,0 +1,27 @@
+.container{
+  border: 5px solid purple;
+  height: 100%;
+  margin: 20px auto;
+  max-width: 600px;
+  min-width: 600px;
+  padding: 5px 0 5px 0;
+  width: 80%;
+}
+
+.card{
+  background: green;
+  border: 2px solid black;
+  border-radius: 10px;
+  display: inline-block;
+  height: 150px;
+  width: 100px;
+
+}
+
+.row{
+  /* border: 2px solid pink; */
+  display: inline-block;
+  margin: 1px 5% 1px 5%;
+  width: 90%;
+
+}
