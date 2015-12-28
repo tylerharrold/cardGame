@@ -29,6 +29,14 @@ function returnNumberBasedOnLoopValue(val){
 function Card(val , suit){
   this.val = val;
   this.suit  = suit;
+  this.clone = function(){
+    var cloneCard = new Card(this.val , this.suit);
+    return cloneCard;
+  };
+  this.setValues = function(newVal , newSuit){
+    this.val = newVal;
+    this.suit = newSuit;
+  };
 };
 
 function Deck(){
@@ -49,9 +57,15 @@ function Deck(){
     }
   };
   this.shuffleDeck = function(){
-    this.cards.forEach(shuffle(){
+    this.cards.forEach(function(card){
       // generate random index of array to swap with
-      var rand = Math.floor(Math.rand() * 52));
+      var randIndex = Math.floor(Math.rand() * 52);
+      // create a placeholder to store value of current index card
+      var placeholderCard = card.clone();
+      // set the values of the current index to those of the random index card
+      card.setValues(cards[randIndex].val , cards[randIndex].suit);
+      // set the values of the random index card to the temp stored values
+      cards[randIndex].setValues(placeholderCard.val , placeholderCard.suit);
     };)
   }
 }
