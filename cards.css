@@ -25,3 +25,7 @@
   width: 90%;
 
 }
+
+.card-held{
+  border: 3px solid blue;
+}
