@@ -11,7 +11,7 @@ var betCounter = 0; // variable to track times the bet button has been clicked
 const valueOfBet = .05; // default value of a bet, this is constant
 var money =  1.00; // money started with, cannot bet more than have Note: for testing this has been set to $10.00
 var totalBet = 0.0; // variable for storing total value  of current bet
-
+var dealt =  false; // sentinel for whether deal has been clicked or not
 /*********************** Utility Functions *******************************/
 // Initialize the game 'board'
 function initialize(){
@@ -80,6 +80,14 @@ function Card(val , suit){
     this.val = newVal;
     this.suit = newSuit;
   };
+  // return val
+  this.returnVal = function(){return this.val};
+  // return suit
+  this.returnSuit  = function(){return this.suit};
+  //function to return string based on card val and suit
+  this.returnFaceValues = function(){
+    return this.val + " of " + this.suit;
+  };
 };
 
 // Deck class
@@ -101,19 +109,37 @@ function Deck(){
     }
   };
   this.shuffleDeck = function(){
-    // NOTE this should probably iterate a few times to increse how  thoroughly a deck is shuffled
-    for(var i = 0 ; i < this.cards.length ; i++){
-      //generate random index of array to swap with
-      var randIndex = Math.floor(Math.random() * 52);
-      //create a placeholder to store value of current index card
-      var placeholderCard = card.clone();
-      // set the values of the current index to those of the random index card
-      card.setValues(this.cards[randIndex].val , this.cards[randIndex].suit);
-      // set the values of the random index card to the temp stored values
-      this.cards[randIndex].setValues(placeholderCard.val , placeholderCard.suit);
+    // NOTE this actually shuffles deck three times
+    for(var k = 0 ; k < 5 ; k++){
+      for(var i = 0 ; i < this.cards.length ; i++){
+        //generate random index of array to swap with
+        var randIndex = Math.floor(Math.random() * this.cards.length);
+        //create a placeholder to store value of current index card
+        var placeholderCard = card.clone();
+        // set the values of the current index to those of the random index card
+        card.setValues(this.cards[randIndex].val , this.cards[randIndex].suit);
+        // set the values of the random index card to the temp stored values
+        this.cards[randIndex].setValues(placeholderCard.val , placeholderCard.suit);
+      }
     }
   };
-}
+  this.drawTopCard = function(){
+    // retuns the actual object spliced out (as opposed to array of one containing it)
+    return this.cards.splice(0 , 1)[0];
+  };
+  this.drawSpecificCard = function(cardObj){
+    // search entire deck for card that matches both props of cardObj
+    for(var i = 0 ; i < this.cards.length ; i++){
+      if(this.cards[i].returnVal() === cardObj.returnVal() && this.cards[i].returnSuit() === cardObj.returnSuit()){
+        // retuns the actual object spliced out (as opposed to array of one containing it)
+        return this.cards.splice(i , 1)[0];
+      }
+    }
+  };
+  this.receiveCard = function(cardObj){
+    this.cards.push(cardObj);
+  }
+};
 
 // Hand class
 function Hand(){
@@ -122,13 +148,23 @@ function Hand(){
   this.drawHand = function(deck){
     // save the first five cards from the shuffled deck into a hand
     for(var i = 0 ; i < 5 ; i++){
-      this.hand[i] = deck[i].clone();
+      this.hand[i] = deck.drawTopCard();
     }
-    // remove the drawn cards from the deck
-    deck.splice(0 , 5);
+  };
+  // function that draws specific card from specific deck and places in specifc index
+  this.mirrorCard = function(handIndex , deckObj , cardObj){
+    // if there is no card object at index, put specified card object there
+    if(this.hand[handIndex] === 0){
+      this.hand[handIndex] =  deckObj.drawSpecificCard(cardObj);
+    }
+    else{
+      // push card back into deck
+      deckObj.receiveCard(this.hand[handIndex]);
+      // make slot equal to 0 again
+      this.hand[handIndex]  =  0;
+    }
   };
   // NEED FUNCTION TO ANALYZE HAND AND TALLY PAYOUT
-  // need a function to re-get
 }
 
 /*
@@ -235,7 +271,24 @@ function resetBetLoop(){
 
 // fucntion and callback for deal button
 // button click event listener
-document.querySelector("#deal").addEventListener("click" , dealFirstHand) // listener
+document.querySelector("#deal").addEventListener("click" , dealCards) // listener
+function dealCards(){
+  // if not previously dealt
+  if(!dealt){
+    // create and draw hand and remove drawn cards from first (alredy shuffled) deck
+
+    handOne.drawHand(deckOne);
+    // assign each card in the hand to a card node item
+    for(i = 10 ; i < allCards.length ; i++){
+      allCards[i].associatedCard = handOne.hand[i - 10];
+    }
+    // update card nodes that have associated cards
+    redrawCards(allCards);
+  }
+  else{
+    // if this is the second time clicking deal, deal the unheld cards
+  }
+};
 
 // function to set totalBet display
 function redisplayTotalBet(){
@@ -247,21 +300,58 @@ function redisplayTotalMoney(){
   document.querySelector("#total-money").textContent = "Total Money: " + money.toFixed(2);
 };
 
-// function to set callback for  button-clickable  class  (gets called after first deal)
-function setCardSelectable(cardSelectable){
-  // acquire node list of all clickable cards
-  // cardSelectable = document.querySelectorAll(".card-selectable");
-  // loop through node list and add callback to it
-  for(var i = 0 ; i < cardSelectable.length ; i++){
-    cardSelectable[i].addEventListener("click" , holdCard);
+// function to set callback for  card-clickable  class  (gets called after first deal)
+function setCardSelectable(cardSelectables){
+  // loop through selectable cards and add callback
+  for(var i = 0 ; i < cardSelectables.length ; i++){
+    cardSelectables[i].addEventListener("click" , clickCard);
   }
 };
 // function for when card is selected (NOTE needs better comment plz)
-function holdCard(){
-  // set card hold value true, and then clone card in mirror spot in other hands
-  // add class of card selected to change the style noticably
-  this.classList.toggle("card-held");
+function clickCard(){
+  // make clicked card and cards directly above it style of card-held
+  toggleCardHeldAppearance(this.rowNum);
+  // alter hands/decks two and three to match
+  // NOTE THIS IS SO FUCKED AND CONFUSING TO READ, I NEED A BETTER WAY TO DO THIS... ARRAY OF HANDS AND DECKS???
+  // NOTE THE BOTTOM SELECTABLE ROW OF CARDS IS LIKE BACKWARDS WHEN WORKING WITH THE ARRAYS OF ALL CARDS, THAT SHOULD'T BE
+  handTwo.mirrorCard(this.rowNum , deckTwo , cardSelectableNodeList[this.rowNum].associatedCard);
+  allCards[this.rowNum + 5].associatedCard = handTwo.hand[this.rowNum];
+  handThree.mirrorCard(this.rowNum , deckThree , cardSelectableNodeList[this.rowNum].associatedCard);
+  allCards[this.rowNum].associatedCard = handThree.hand[this.rowNum];
+  // then redraw cards
+  redrawCards(allCards);
 };
+
+// function to refresh displayed value of card nodes (drawn from attached card from hand)
+function redrawCards(cardNodeList){
+  for(var i = 0 ; i < cardNodeList.length ; i++){
+    // redraw cards, but only if they have an associatedCard property
+    if(cardNodeList[i].hasOwnProperty('associatedCard')){
+      // NOTE this needs to be cleaner BUT FOR NOW
+      if(cardNodeList[i].associatedCard.hasOwnProperty('returnFaceValues')){
+        cardNodeList[i].querySelector("p").textContent = cardNodeList[i].associatedCard.returnFaceValues();
+      }
+      else{
+        //return its text to hold
+          cardNodeList[i].querySelector("p").textContent = "Hold";
+      }
+    }
+  }
+};
+
+// function to toggle css appearance of clicked (held) cards
+function toggleCardHeldAppearance(num){
+  for(var i = num ; i < 15 ; i+= 5){
+    allCards[i].classList.toggle("card-held");
+  }
+};
+
+function toggleCardHeldValues(num){
+  for(var i = num ; i < 10 ; i+= 5){
+
+  }
+}
+
 
 
 
@@ -270,51 +360,57 @@ function holdCard(){
   Game Logic
  *****************************************
 */
-// testing function can be deleted later
-function displayNodeNumber(){
-  var list = document.querySelectorAll(".card");
-
-  for(var i = 0 ; i < list.length ; i++){
-    list[i].querySelector("p").textContent = i + 1;
-  }
-}
+// NOTE testing function can be deleted later
+// function displayNodeNumber(){
+//   var list = document.querySelectorAll(".card");
+//
+//   for(var i = 0 ; i < list.length ; i++){
+//     list[i].querySelector("p").textContent = i + 1;
+//   }
+// }
 
 // initialize 'game screen'
-initialize();
 
 // NOTE test loop
 // On page load, create 3 decks for each row of cards and the first hand
 // deck for testing can be deleted later
-var deckOne = new Deck();
-deckOne.populateDeck();
-deckOne.shuffleDeck();
 
-var handOne = new Hand();
 
+
+// node list of ALL cards
+var allCards = document.querySelectorAll(".card");
+
+// create a node list of every selectable card
 var cardSelectableNodeList = document.querySelectorAll(".card-selectable");
-setCardSelectable(cardSelectableNodeList); // NOTE FOR TEST DELETE
+// assign access number to each  card-selectable
+for(var i = 0 ; i < cardSelectableNodeList.length ; i++){
+  cardSelectableNodeList[i].rowNum = i;
+}
+// set the response to each card being clicked
+setCardSelectable(cardSelectableNodeList);
 
 
-// function to deal out first hand
-function dealFirstHand(){
-  // draw hand and remove drawn cards from deck
-  handOne.drawHand(deckOne.cards);
-  // display the five cards on the node list of dirs
-  var cardNodeList = document.querySelectorAll(".card");
-  for(var i = 10 ; i < cardNodeList.length ; i++){
-    var content = handOne.hand[i - 10].val + " of " + handOne.hand[i - 10].suit;
-    cardNodeList[i].querySelector("p").textContent = content;
-  }
-};
+
 
 // game loop
   // eventual function to check if the money is  enough to do even a 1 hand 1 bet bet, if not deactivate all
     // until  there is
-  // initialize function that  sets everything up
-    // create three decks
+// initialize function that  sets everything up
+initialize();
+// create three decks, shuffle the first, hold the rest (will be shuffled after held cards are removed);
+var deckOne = new Deck();
+deckOne.populateDeck(); // NOTE should be one line function that does both
+deckOne.shuffleDeck();
+var deckTwo = new Deck();
+deckTwo.populateDeck();
+var deckThree = new Deck();
+deckThree.populateDeck();
     // ensure all but one hand is 'greyed out'
   // allow user to set bet
-  // when user clicks deal, create hand and remove hand from shuffled deck 1
+// when user clicks deal, create hand and remove hand from shuffled deck 1
+var handOne = new Hand();
+var handTwo =  new Hand();
+var handThree = new Hand();
     // populate first row with hand
     // remove the option to bet or increase hands
   // let user click cards to select 'keepers' those 'keepers' populate in above rows

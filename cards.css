@@ -1,3 +1,5 @@
+/* NOTE spacing needs to be better so that all selected cards dont newline */
+
 .container{
   border: 5px solid purple;
   height: 100%;
