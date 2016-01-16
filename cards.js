@@ -1,6 +1,7 @@
 // NOTE for future builds:
 /*
-  Would like to use for each when possible? probably cleaner
+  - Would like to use for each when possible? probably cleaner
+  - perhaps build a wildcard function into this?
 
 */
 
@@ -31,8 +32,6 @@ function initialize(){
   refreshTotalBet(); // ensure  opening bet is  correct
   redisplayTotalMoney(); // display the total amount of money available  to player
   redisplayTotalBet(); // display the current total bet
-
-  // set up and shuffle three decks
 };
 
 // refresh the total bet
@@ -53,13 +52,13 @@ function canAffordBet(){
 function returnSuitBasedOnLoopValue(val){
   switch (val){
     case 0:
-      return "hearts";
+      return "heart";
     case 1:
-      return "diamonds";
+      return "diamond";
     case 2:
-      return "clubs";
+      return "club";
     case 3:
-      return "spades";
+      return "spade";
   }
 };
 
@@ -67,13 +66,13 @@ function returnSuitBasedOnLoopValue(val){
 function returnNumberBasedOnLoopValue(val){
   switch(val){
     case 1:
-      return "Ace";
+      return "a";
     case 11:
-      return "Jack";
+      return "j";
     case 12:
-      return "Queen";
+      return "q";
     case 13:
-      return "King";
+      return "k";
     default:
       return val;
   }
@@ -99,7 +98,7 @@ function Card(val , suit){
   this.returnSuit  = function(){return this.suit};
   //function to return string based on card val and suit
   this.returnFaceValues = function(){
-    return this.val + " of " + this.suit;
+    return this.val + this.suit;
   };
   this.toggleHold = function(){
     this.hold = !this.hold;
@@ -185,8 +184,45 @@ function Hand(){
       this.hand[handIndex]  =  0;
     }
   };
-  // NEED FUNCTION TO ANALYZE HAND AND TALLY PAYOUT
-}
+  this.sortHand = function(){
+
+  };
+};
+
+/*
+ *****************************************
+  Hand Reader for Rewards
+ *****************************************
+*/
+function readHand(arrayOfCards){
+  var isFlush = checkForFlush(arrayOfCards);
+  var isStraight = false;
+
+  // if isFlush and isStraight are true
+    // check to see if royal
+    // else award straight flush
+
+  // if fourofkind?
+    // award is four of  kind
+
+  // full house
+  // flush
+  // straight
+  // three of a kind
+  // one pair = money back
+};
+
+function checkForFlush(handToCheck){
+  for(var i = 0 ; i < handToCheck.length - 1 ; i++){
+    if(handToCheck[i].returnSuit() === handToCheck[i + 1]){
+      // flush is still accurate
+    }
+    else{
+      return false;
+    }
+  }
+  return true;
+};
 
 /*
  *****************************************
@@ -421,6 +457,8 @@ for(var i = 0 ; i < allCardVectors.length ; i++){
   allCardVectors[i].columnNum = i % 5;
 }
 
+
+// NOTE here we should only create decks and hands for the number of hands opted to play
 // create array of decks to use in the game
 var deckArray = [new Deck() , new Deck() , new Deck()]; // create necessary decks
 for(var i = 0 ; i < deckArray.length ; i++){
