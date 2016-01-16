@@ -1,3 +1,9 @@
+// NOTE for future builds:
+/*
+  Would like to use for each when possible? probably cleaner
+
+*/
+
 /*
  *****************************************
   Class definitions, utility functions, and globals
@@ -11,10 +17,10 @@ var betCounter = 0; // variable to track times the bet button has been clicked
 const valueOfBet = .05; // default value of a bet, this is constant
 var money =  1.00; // money started with, cannot bet more than have Note: for testing this has been set to $10.00
 var totalBet = 0.0; // variable for storing total value  of current bet
-var dealt =  false; // sentinel for whether deal has been clicked or not
+var dealtOnce =  false; // sentinel for whether deal has been clicked or not
 
 // enum type object to keep deck and hand arrays more readable
- const var ROW = {
+ const ROW = {
   ONE: 0 ,
   TWO: 1 ,
   THREE: 2
@@ -95,6 +101,9 @@ function Card(val , suit){
   this.returnFaceValues = function(){
     return this.val + " of " + this.suit;
   };
+  this.toggleHold = function(){
+    this.hold = !this.hold;
+  };
 };
 
 // Deck class
@@ -165,8 +174,11 @@ function Hand(){
     // if there is no card object at index, put specified card object there
     if(this.hand[handIndex] === 0){
       this.hand[handIndex] =  deckObj.drawSpecificCard(cardObj);
+      this.hand[handIndex].toggleHold();
     }
     else{
+      // set the hold value of card to false
+      this.hand[handIndex].toggleHold();
       // push card back into deck
       deckObj.receiveCard(this.hand[handIndex]);
       // make slot equal to 0 again
@@ -282,28 +294,48 @@ function resetBetLoop(){
 // button click event listener
 document.querySelector("#deal").addEventListener("click" , dealCards) // listener
 function dealCards(){
-  // if not previously dealt
-  if(!dealt){
+  // if not previously dealtOnce
+  if(!dealtOnce){
     // create and draw hand and remove drawn cards from first (alredy shuffled) deck
-    handOne.drawHand(deckOne);
+    handArray[ROW.THREE].drawHand(deckArray[ROW.THREE]);
     // assign each card in the hand to a card node item
     for(i = 10 ; i < allCardVectors.length ; i++){
-      allCardVectors[i].associatedCard = handOne.hand[i - 10];
+      allCardVectors[i].associatedCard = handArray[ROW.THREE].hand[i - 10];
     }
     // update card nodes that have associated cards
     redrawCards(allCardVectors);
 
-    // now that first row of cards are dealt, we can click them
+    // now that first row of cards are dealtOnce, we can click them
     makeCardsSelectable(allCardVectors);
+
+    // makedealtOnce true
+    dealtOnce = true;
   }
   else{
     // if this is the second time clicking deal...
 
-    // shuffle the remaining cards in decks 1 and 2 (cards have been pulled out potentially)
-
+    // shuffle the remaining cards in all dekcs (cards have been pulled out potentially)
+    for(var i = 0 ; i < 3 ; i++){
+      deckArray[i].shuffleDeck();
+    }
     // if the val at each index in the hand array is 0 (i.e. no card),
-      // replace with card off of to of shuffled corresponding deck
+    // NOTE this is a messy workaround, should be cleaner, but for the sake of gettin' it workin....
+    for(var i = 0 ; i < 3 ; i++){
+      for(var k = 0 ; k < 5 ; k++){
+        if(handArray[i].hand[k] === 0){
+          // replace with drawn card from corresponding deck
+          handArray[i].hand[k] = deckArray[i].drawTopCard();
+        }
+        else if(handArray[i].hand[k].hold === false){
+          handArray[i].hand[k] = deckArray[i].drawTopCard();
+        }
+        else{
+          // the hold value is true, do nothing
+        }
+      }
+    }
 
+    redrawCards(allCardVectors);
     // ganme has run its course, each hand should be ckecked for winning hands
 
   }
@@ -327,36 +359,21 @@ function makeCardsSelectable(cardSelectables){
   }
 };
 
-// CALLBACK FUNCTION for when card is selected (NOTE needs better comment plz)
+// CALLBACK FUNCTION for when card is selected
 function clickCard(){
   // make clicked card and cards directly above it style of card-held
   toggleCardHeldAppearance(this.columnNum);
-  // alter hands/decks two and three to match
-  // NOTE THIS IS SO FUCKED AND CONFUSING TO READ, I NEED A BETTER WAY TO DO THIS... ARRAY OF HANDS AND DECKS???
-  // NOTE THE BOTTOM SELECTABLE ROW OF CARDS IS LIKE BACKWARDS WHEN WORKING WITH THE ARRAYS OF ALL CARDS, THAT SHOULD'T BE
-  handTwo.mirrorCard(this.columnNum , deckTwo , cardSelectableNodeList[this.columnNum].associatedCard);
-  allCardVectors[this.columnNum + 5].associatedCard = handTwo.hand[this.columnNum];
-  handThree.mirrorCard(this.columnNum , deckThree , cardSelectableNodeList[this.columnNum].associatedCard);
-  allCardVectors[this.columnNum].associatedCard = handThree.hand[this.columnNum];
+
+  // for each other hand, mirror the value of this clicked card
+  for(var i = 0 ; i < handArray.length - 1 ; i++){
+    handArray[i].mirrorCard(this.columnNum , deckArray[i] , allCardVectors[this.columnNum + 10].associatedCard ); // try this.associatedCard
+  }
+
+  // toggle the hold value of the card clicked
+  handArray[ROW.THREE].hand[this.columnNum].toggleHold();
+
   // then redraw cards
   redrawCards(allCardVectors);
-};
-
-// function to refresh displayed value of card nodes (drawn from attached card from hand)
-function redrawCards(cardNodeList){
-  for(var i = 0 ; i < cardNodeList.length ; i++){
-    // redraw cards, but only if they have an associatedCard property
-    if(cardNodeList[i].hasOwnProperty('associatedCard')){
-      // NOTE this needs to be cleaner BUT FOR NOW
-      if(cardNodeList[i].associatedCard.hasOwnProperty('returnFaceValues')){
-        cardNodeList[i].querySelector("p").textContent = cardNodeList[i].associatedCard.returnFaceValues();
-      }
-      else{
-        //return its text to hold
-          cardNodeList[i].querySelector("p").textContent = "Hold";
-      }
-    }
-  }
 };
 
 // function to toggle css appearance of clicked (held) cards in specified column
@@ -372,6 +389,22 @@ function toggleCardHeldValues(num){
   }
 }
 
+// Redraw each card in the allCardVectors node list (according to their corresponding card)
+function redrawCards(nodeList){
+  // loop through all card vectors
+  for(var i = 0 ; i < nodeList.length ; i++){
+    // if associated card has 0 in index of hand array, draw Hold
+    if(handArray[Math.floor(i / 5)].hand[i % 5] === 0){
+      nodeList[i].querySelector("p").textContent = "Hold";
+    }
+    else{
+      // else draw the return value of card at index
+      nodeList[i].querySelector("p").textContent = handArray[Math.floor(i / 5)].hand[i % 5].returnFaceValues();
+    }
+
+  }
+};
+
 
 /*
  *****************************************
@@ -379,6 +412,7 @@ function toggleCardHeldValues(num){
  *****************************************
  */
 // initialize 'game screen'
+initialize();
 
 // node list of ALL cards
 var allCardVectors = document.querySelectorAll(".card");
@@ -387,15 +421,17 @@ for(var i = 0 ; i < allCardVectors.length ; i++){
   allCardVectors[i].columnNum = i % 5;
 }
 
-
-// create a node list of every selectable card
-var cardSelectableNodeList = document.querySelectorAll(".card-selectable");
-// assign access number to each  card-selectable
-for(var i = 0 ; i < cardSelectableNodeList.length ; i++){
-  cardSelectableNodeList[i].columnNum = i;
+// create array of decks to use in the game
+var deckArray = [new Deck() , new Deck() , new Deck()]; // create necessary decks
+for(var i = 0 ; i < deckArray.length ; i++){
+  deckArray[i].populateDeck(); // populate each deck
 }
-// set the response to each card being clicked
-// setCardSelectable(cardSelectableNodeList);
+deckArray[ROW.THREE].shuffleDeck(); // shuffle the deck used in first deal
+
+// create array of hands to use in the game
+var handArray = [new Hand() , new Hand() , new Hand()];
+
+
 
 
 
@@ -404,7 +440,6 @@ for(var i = 0 ; i < cardSelectableNodeList.length ; i++){
   // eventual function to check if the money is  enough to do even a 1 hand 1 bet bet, if not deactivate all
     // until  there is
 // initialize game screen
-initialize();
 // create three decks, shuffle the first, hold the rest (will be shuffled after held cards are removed);
 // NOTE greyed out for test in favor of deck array
 // var deckOne = new Deck();
@@ -415,19 +450,15 @@ initialize();
 // var deckThree = new Deck();
 // deckThree.populateDeck();
 // NOTE uncomment up to here if all goes awful
-var deckArray = [new Deck() , new Deck() , new Deck()]; // create necessary decks
-for(var i = 0 ; i < deckArray.length ; i++){
-  deckArray[i].populateDeck(); // populate each deck
-}
-deckArray[2]
+
 
 
     // ensure all but one hand is 'greyed out'
   // allow user to set bet
 // when user clicks deal, create hand and remove hand from shuffled deck 1
-var handOne = new Hand();
-var handTwo =  new Hand();
-var handThree = new Hand();
+// var handOne = new Hand();
+// var handTwo =  new Hand();
+// var handThree = new Hand();
     // populate first row with hand
     // remove the option to bet or increase hands
   // let user click cards to select 'keepers' those 'keepers' populate in above rows
