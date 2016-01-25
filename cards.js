@@ -470,7 +470,7 @@ deckArray[ROW.THREE].shuffleDeck(); // shuffle the deck used in first deal
 var handArray = [new Hand() , new Hand() , new Hand()];
 
 
-
+// test change for git commit
 
 
 
