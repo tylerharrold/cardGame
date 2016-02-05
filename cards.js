@@ -212,7 +212,9 @@ function readHand(arrayOfCards){
   // one pair = money back
 };
 
+// Function checkForFlush takes a hand of Cards and sees if its
 function checkForFlush(handToCheck){
+  var isFlush = true;
   for(var i = 0 ; i < handToCheck.length - 1 ; i++){
     if(handToCheck[i].returnSuit() === handToCheck[i + 1]){
       // flush is still accurate
@@ -221,7 +223,7 @@ function checkForFlush(handToCheck){
       return false;
     }
   }
-  return true;
+  return isFlush; // comments
 };
 
 /*
