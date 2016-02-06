@@ -11,21 +11,7 @@
  *****************************************
 */
 
-/*********************** Globals *******************************/
-var handsToPlay = 1; // number of hands to play (default of one hand)
-var betPerHand =  1; // bet per hand (default of one unit)
-var betCounter = 0; // variable to track times the bet button has been clicked
-const valueOfBet = .05; // default value of a bet, this is constant
-var money =  1.00; // money started with, cannot bet more than have Note: for testing this has been set to $10.00
-var totalBet = 0.0; // variable for storing total value  of current bet
-var dealtOnce =  false; // sentinel for whether deal has been clicked or not
 
-// enum type object to keep deck and hand arrays more readable
- const ROW = {
-  ONE: 0 ,
-  TWO: 1 ,
-  THREE: 2
-};
 /*********************** Utility Functions *******************************/
 // Initialize the game 'board'
 function initialize(){
@@ -50,6 +36,7 @@ function canAffordBet(){
 
 // Function to return a proper card suit
 function returnSuitBasedOnLoopValue(val){
+    // NOTE we may no longer need this
   switch (val){
     case 0:
       return "heart";
@@ -64,6 +51,7 @@ function returnSuitBasedOnLoopValue(val){
 
 // Function to return a proper card name
 function returnNumberBasedOnLoopValue(val){
+    // NOTE we may no longer need this
   switch(val){
     case 1:
       return "a";
@@ -79,115 +67,8 @@ function returnNumberBasedOnLoopValue(val){
 };
 
 /*********************** Classes *******************************/
-// Card class
-function Card(val , suit){
-  this.val = val;
-  this.suit  = suit;
-  this.hold = false;  // sets to true if the card is being kept in a hand
-  this.clone = function(){
-    var cloneCard = new Card(this.val , this.suit);
-    return cloneCard;
-  };
-  this.setValues = function(newVal , newSuit){
-    this.val = newVal;
-    this.suit = newSuit;
-  };
-  // return val
-  this.returnVal = function(){return this.val};
-  // return suit
-  this.returnSuit  = function(){return this.suit};
-  //function to return string based on card val and suit
-  this.returnFaceValues = function(){
-    return this.val + this.suit;
-  };
-  this.toggleHold = function(){
-    this.hold = !this.hold;
-  };
-};
 
-// Deck class
-function Deck(){
-  // array of 52 cards
-  this.cards =  [];
-  this.populateDeck = function(){
-    for(var i = 0 ; i < 4 ; i++){
-      var suit = returnSuitBasedOnLoopValue(i);
-      for(var k = 1 ; k <= 13 ; k++){
-        card = new Card(returnNumberBasedOnLoopValue(k) , suit);
-        this.cards.push(card);
-      }
-    }
-  };
-  this.printDeck = function(){
-    for(var i = 0 ; i < this.cards.length ; i++){
-      console.log(this.cards[i].val + " of " + this.cards[i].suit);
-    }
-  };
-  this.shuffleDeck = function(){
-    // NOTE this actually shuffles deck three times
-    for(var k = 0 ; k < 5 ; k++){
-      for(var i = 0 ; i < this.cards.length ; i++){
-        //generate random index of array to swap with
-        var randIndex = Math.floor(Math.random() * this.cards.length);
-        //create a placeholder to store value of current index card
-        var placeholderCard = card.clone();
-        // set the values of the current index to those of the random index card
-        card.setValues(this.cards[randIndex].val , this.cards[randIndex].suit);
-        // set the values of the random index card to the temp stored values
-        this.cards[randIndex].setValues(placeholderCard.val , placeholderCard.suit);
-      }
-    }
-  };
-  this.drawTopCard = function(){
-    // retuns the actual object spliced out (as opposed to array of one containing it)
-    return this.cards.splice(0 , 1)[0];
-  };
-  this.drawSpecificCard = function(cardObj){
-    // search entire deck for card that matches both props of cardObj
-    for(var i = 0 ; i < this.cards.length ; i++){
-      if(this.cards[i].returnVal() === cardObj.returnVal() && this.cards[i].returnSuit() === cardObj.returnSuit()){
-        // retuns the actual object spliced out (as opposed to array of one containing it)
-        return this.cards.splice(i , 1)[0];
-      }
-    }
-  };
-  this.receiveCard = function(cardObj){
-    this.cards.push(cardObj);
-  }
-};
 
-// Hand class
-function Hand(){
-  // NOTE consider making a non-deck 'generic' card that actually has the properties of a card
-  //      that can be a placeholder other than zero (this should remove the need for the dual hasOwnProperty checks)
-  this.hand = [0 , 0 , 0 , 0 , 0]; // array of five (eventual) card objects
-  this.handWinnings = 0; // winning for the hand (default 0)
-  this.drawHand = function(deck){
-    // save the first five cards from the shuffled deck into a hand
-    for(var i = 0 ; i < 5 ; i++){
-      this.hand[i] = deck.drawTopCard();
-    }
-  };
-  // function that draws specific card from specific deck and places in specifc index
-  this.mirrorCard = function(handIndex , deckObj , cardObj){
-    // if there is no card object at index, put specified card object there
-    if(this.hand[handIndex] === 0){
-      this.hand[handIndex] =  deckObj.drawSpecificCard(cardObj);
-      this.hand[handIndex].toggleHold();
-    }
-    else{
-      // set the hold value of card to false
-      this.hand[handIndex].toggleHold();
-      // push card back into deck
-      deckObj.receiveCard(this.hand[handIndex]);
-      // make slot equal to 0 again
-      this.hand[handIndex]  =  0;
-    }
-  };
-  this.sortHand = function(){
-
-  };
-};
 
 /*
  *****************************************
@@ -451,7 +332,7 @@ function redrawCards(nodeList){
  */
 // initialize 'game screen'
 initialize();
-
+/* NOTE 02.05.2016 HEREIN BEGINS MEGA OVERHAUL
 // node list of ALL cards
 var allCardVectors = document.querySelectorAll(".card");
 // assign all cards a columnNumber
@@ -470,8 +351,8 @@ deckArray[ROW.THREE].shuffleDeck(); // shuffle the deck used in first deal
 
 // create array of hands to use in the game
 var handArray = [new Hand() , new Hand() , new Hand()];
-
-
+*/
+// HEREIN ENDS MEGA OVERHAUL 02.05.2015
 // test change for git commit
 
 

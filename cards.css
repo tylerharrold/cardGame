@@ -1,7 +1,11 @@
 /* NOTE spacing needs to be better so that all selected cards dont newline */
+body{
+  background-color: #071952;
+}
+
 
 .container{
-  border: 5px solid purple;
+  /* border: 6px solid purple; */
   height: 100%;
   margin: 20px auto;
   max-width: 800px;
@@ -11,25 +15,39 @@
 }
 
 .card{
-  background: green;
-  border: 2px solid black;
-  border-radius: 10px;
+
+
   display: inline-block;
-  height: 150px;
-  width: 100px;
+  /* height: 150px; */
+  /* width: 100px; */
+  padding-bottom: 0px;
 
 }
+
+img{
+  /* EVENTUALLY ONLY HAVE BORDERS FOR SELECTED CARDS */
+  width: 100px;
+  border: 2px solid black;
+  border-radius: 8px;
+}
+
+
 
 .row{
   /* border: 2px solid pink; */
   display: inline-block;
-  margin: 1px 5% 1px 5%;
+  margin: 3px 5% 3px 5%;
   width: 90%;
 
 }
 
 .card-held{
   border: 3px solid blue;
+}
+
+.card-inactive{
+
+  -webkit-filter: grayscale(100%) brightness(50%);
 }
 
 
