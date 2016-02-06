@@ -15,7 +15,16 @@ function CardGraphics(nodeList , rowCount, columnCount)
   this.rowCount = rowCount;
   this.columnCount = columnCount;
 
-  // function to receive references to cards in a hand
+  /*
+    Set Default State Function
+        This function uses what the class knows about rows and colums to
+      apply an specific graphic filter to a given range
+  */
+  this.applyGraphicsClass = function(strGraphicsClass , lowerBound , upperBound){
+    for(var i = lowerBound ; i < upperBound ; i++){
+      this.nodeList[i].classList.toggle(strGraphicsClass);
+    }
+  }
 
 }
 

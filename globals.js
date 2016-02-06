@@ -8,7 +8,7 @@ var totalBet = 0.0; // variable for storing total value  of current bet
 var dealtOnce =  false; // sentinel for whether deal has been clicked or not
 
 const NUMBER_OF_ROWS = 3;
-const COLUMNS_PER_ROW = 5;
+const CARDS_PER_ROW = 5;
 const CARDS_PER_SUIT = 13;
 const NUMBER_OF_SUITS = 4;
 const SHUFFLES = 5;

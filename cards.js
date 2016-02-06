@@ -114,38 +114,8 @@ function checkForFlush(handToCheck){
 */
 
 // function and callback to alter handsToPlay by button click
-document.querySelector("#hands-to-play").addEventListener("click" , alterHands); // button listener
-function alterHands(){
-  // increase hand amount, if the total still passes check, break, otherwise, revert to  lowest
-  switch(handsToPlay){
-    case 1:
-      handsToPlay = 2;
-      if(canAffordBet()){
-        break;
-      }
-      else{
-        resetHandLoop();
-        break;
-      }
-    case 2:
-      handsToPlay = 3;
-      if(canAffordBet()){
-        break;
-      }
-      else{
-        resetHandLoop();
-        break;
-      }
-      break;
-    case 3:
-      resetHandLoop();
-      break;
-    }
 
-  // change the display of button, and total bet tracker
-  document.querySelector("#hands-to-play").textContent = "Hands to Play: " + handsToPlay;
-  redisplayTotalBet();
-};
+
 // utility function to reduce  repeated code in alterHands switch statement
 function resetHandLoop(){
   handsToPlay = 1;

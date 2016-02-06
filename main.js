@@ -20,9 +20,11 @@
 // Initialize Game
 initialize();
 
-// Create graphics
+// Create graphics and set default state based on game parameters and values
 var nodeListOfCards = document.querySelectorAll(".card");
-var cardGraphics = new CardGraphics(nodeListOfCards , NUMBER_OF_ROWS , COLUMNS_PER_ROW);
+var cardGraphics = new CardGraphics(nodeListOfCards , NUMBER_OF_ROWS , CARDS_PER_ROW);
+cardGraphics.applyGraphicsClass("card-inactive" , 0 , (NUMBER_OF_ROWS * CARDS_PER_ROW - (handsToPlay * CARDS_PER_ROW)));
+
 
 
 var testDeck = new Deck();
